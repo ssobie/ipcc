@@ -174,10 +174,11 @@ obs.grid <- 'hadcru4'
 base.dir <-'/storage/data/climate/downscale/BCCAQ2+PRISM/CMIP5/global/annual/'
 
 ##ACCESS1-0
-gcm.list <- c('bcc-csm1-1-m','ACCESS1-3','bcc-csm1-1-m','CanESM2','CCSM4','CNRM-CM5','CSIRO-Mk3-6-0',
+gcm.list <- c('bcc-csm1-1','ACCESS1-0','ACCESS1-3','bcc-csm1-1-m','CanESM2','CCSM4','CNRM-CM5','CSIRO-Mk3-6-0',
               'GFDL-CM3','GFDL-ESM2G','GFDL-ESM2M','HadGEM2-AO','HadGEM2-ES','inmcm4','IPSL-CM5A-LR',
               'IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC5','MIROC-ESM','MIROC-ESM-CHEM','MPI-ESM-MR', 'MPI-ESM-LR',
-              'MRI-CGCM3','NorESM1-M')
+              'MRI-CGCM3','NorESM1-M','GISS-E2-H','GISS-E2-R','NorESM1-ME')
+
 gcm.len <- length(gcm.list)
 
 rcp85.data <- tas.data(gcm.list,base.dir,obs.grid,scenario='rcp85',chose.mask)
@@ -187,7 +188,8 @@ rcp45.data <- tas.data(gcm.list,base.dir,obs.grid,scenario='rcp45',chose.mask)
 ##RCP26 List
 rcp26.list <- c('bcc-csm1-1','bcc-csm1-1-m','CanESM2','CCSM4','CNRM-CM5','CSIRO-Mk3-6-0','GFDL-CM3','GFDL-ESM2G',
               'GFDL-ESM2M','HadGEM2-AO','HadGEM2-ES','IPSL-CM5A-LR','IPSL-CM5A-MR','MIROC5','MIROC-ESM','MIROC-ESM-CHEM',
-              'MPI-ESM-MR','MPI-ESM-LR','MRI-CGCM3','NorESM1-M')
+              'MPI-ESM-MR','MPI-ESM-LR','MRI-CGCM3','NorESM1-M','NorESM1-ME','GISS-E2-H','GISS-E2-R')
+gcm26.len <- length(rcp26.list)
 rcp26.data <- tas.data(rcp26.list,base.dir,obs.grid,scenario='rcp26',chose.mask)
 
 all.rcps <- list(arctic=c(unlist(rcp26.data$arctic),unlist(rcp45.data$arctic),unlist(rcp85.data$arctic)),
@@ -198,11 +200,11 @@ smoothed.rcps <- predict(rcps.loess)
 ey <- 200
   global.avg.85 <- apply(matrix(unlist(rcp85.data$global),nrow=gcm.len,ncol=ey,byrow=T),2,mean)
   global.avg.45 <- apply(matrix(unlist(rcp45.data$global),nrow=gcm.len,ncol=ey,byrow=T),2,mean)
-  global.avg.26 <- apply(matrix(unlist(rcp26.data$global),nrow=20,ncol=ey,byrow=T),2,mean)
+  global.avg.26 <- apply(matrix(unlist(rcp26.data$global),nrow=gcm26.len,ncol=ey,byrow=T),2,mean)
 
   arctic.avg.85 <- apply(matrix(unlist(rcp85.data$arctic),nrow=gcm.len,ncol=ey,byrow=T),2,mean)
   arctic.avg.45 <- apply(matrix(unlist(rcp45.data$arctic),nrow=gcm.len,ncol=ey,byrow=T),2,mean)
-  arctic.avg.26 <- apply(matrix(unlist(rcp26.data$arctic),nrow=20,ncol=ey,byrow=T),2,mean)
+  arctic.avg.26 <- apply(matrix(unlist(rcp26.data$arctic),nrow=gcm26.len,ncol=ey,byrow=T),2,mean)
 
 ##----------------------------------------------------------------
 ##Ice data - RCP85
@@ -246,7 +248,7 @@ si.85 <- snow.ice.csv('85')
 ##****************************************************************************
 ##Create the two figure plot
 
-  plot.file <- paste0(plot.dir,'arctic_tas_and_ice_free_days_all_rcps_4figure_new.png')
+  plot.file <- paste0(plot.dir,'arctic_tas_and_ice_free_days_all_rcps_4figure_new2.png')
   png(plot.file,width=1400,height=800)
   ##par(mfrow=c(1,2))
   layout(mat=cbind(matrix(1,nrow=2,ncol=2),matrix(2:5,nrow=2,ncol=2,byrow=T)))

@@ -1,7 +1,7 @@
 ##Script to convert the gcms to the same grid as observations.
 
-scenario <- 'rcp85'
-obs <- 'hadcru4'
+scenario <- 'rcp26'
+obs <- 'gistemp'
 
 base.dir <- '/storage/data/climate/downscale/BCCAQ2+PRISM/CMIP5/global/annual/'
 grid.file <- paste0('/storage/home/ssobie/grid_files/',obs,'.grid.txt')
@@ -14,7 +14,8 @@ gcm.list <- c('ACCESS1-0', 'bcc-csm1-1','CanESM2','CSIRO-Mk3-6-0', 'GFDL-CM3','H
 ##              'MPI-ESM-LR','MPI-ESM-MR','NorESM1-M','bcc-csm1-1','bcc-csm1-1-m','CNRM-CM5','inmcm4',
 ##              'HadGEM2-CC','HadGEM2-ES','IPSL-CM5A-LR','MIROC5','MIROC-ESM','MIROC-ESM-CHEM','MRI-CGCM3')
 
-gcm.list <- 'IPSL-CM5B-LR'
+gcm.list <- 'NorESM1-ME'
+
 for (gcm in gcm.list) {
   print(gcm)
 
