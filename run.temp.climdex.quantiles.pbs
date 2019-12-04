@@ -1,0 +1,21 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=4
+#PBS -l pmem=10000mb
+#PBS -l walltime=48:00:00
+#PBS -d /storage/home/ssobie/code/repos/ipcc/
+#PBS -o /storage/home/ssobie/code/repos/ipcc/climdex.stdout.log
+#PBS -e /storage/home/ssobie/code/repos/ipcc/climdex.stderr.log 
+
+gcm='BCC-CSM2-MR'
+run='r1i1p1f1'
+scenario='ssp126'
+
+cd /storage/home/ssobie/code/repos/ipcc/
+echo "Current working directory is `pwd`"
+
+module load R
+module load netcdf-bin
+module load nco-bin
+
+nohup R CMD BATCH --no-save --no-restore "--args tmpdir='$TMPDIR' gcm='$gcm' scenario='$scenario' run='$run'" cmip6.temp.quantiles.climdex.r "./out_files/${gcm}.${scenario}.${run}.temp.climdex.out"
+

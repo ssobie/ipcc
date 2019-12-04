@@ -2,11 +2,11 @@
 
 slice.by.time <- function(space.file,time.file,past) {
   if (past) {
-    time.write <- gsub(pattern='[0-9]{8}-[0-9]{8}',replacement='18500101-20051231',time.file)
-    work <- paste('cdo -O seldate,1850-01-01T00:00,2005-12-31T23:59 ',space.file,' ',time.write,sep='')
+    time.write <- gsub(pattern='[0-9]{8}-[0-9]{8}',replacement='19000101-20051231',time.file)
+    work <- paste('cdo -O seldate,1900-01-01T00:00:00,2005-12-31T23:59:59 ',space.file,' ',time.write,sep='')
   } else {
     time.write <- gsub(pattern='[0-9]{8}-[0-9]{8}',replacement='20060101-21001231',time.file)
-    work <- paste('cdo -O seldate,2006-01-01T00:00,2100-12-31T23:59 ',space.file,' ',time.write,sep='')
+    work <- paste('cdo -O seldate,2006-01-01T00:00:00,2100-12-31T23:59:59 ',space.file,' ',time.write,sep='')
   }
 
 ##  if (past) {
@@ -94,14 +94,14 @@ group.files <- function(file.list,matrix.subset,tmp.dir,base.dir,scenarios) {
      nc.files <- unlist(file.list)
      h.ix <- grep(scenario,nc.files)
      
-     if (1==0) {##(length(h.ix) > 1) {
+     if (length(h.ix) > 1) {
         file.paste <- paste(paste(base.dir,'/',file.list[h.ix],sep=''),collapse=' ')
         new.file <- make.new.files(nc.files,h.ix)
         new.full <- paste(tmp.dir,'grouptmp/',new.file,sep='')
         work <- paste('ncrcat -O ',file.paste,' ',new.full,sep='')      
         print(work)
         system(work)
-     } else {##if (length(h.ix) ==1) {
+     } else if (length(h.ix) ==1) {
         print('File exists')
         work <- paste('cp ',base.dir,'/',file.list[h.ix],' ',tmp.dir,'grouptmp/',nc.files[h.ix],sep='')
         print(work)
@@ -118,13 +118,13 @@ group.files <- function(file.list,matrix.subset,tmp.dir,base.dir,scenarios) {
 ##    eval(parse(text=args[[i]]))
 ##}
 
-tmp.dir <- '/local_temp/ssobie/' ##tmpdir
+tmp.dir <- '/local_temp/ssobie/concat/' ##tmpdir
 
-if (!file.exists(tmp.dir)) {
+#if (!file.exists(tmp.dir)) {
   dir.create(tmp.dir,recursive=TRUE)
   dir.create(paste0(tmp.dir,'timetmp/'),recursive=TRUE)
   dir.create(paste0(tmp.dir,'grouptmp/'),recursive=TRUE)
-}
+#}
 
 ##Clean tmpdir
 ##rm.tmp <- paste0("rm ",tmp.dir,"*nc")
@@ -147,7 +147,7 @@ gcm.list <- c('GFDL-CM3','GFDL-ESM2G','GFDL-ESM2M')
 ##gcm.list <- c('bcc-csm1-1-m','CanESM2','CCSM4','CNRM-CM5','CSIRO-Mk3-6-0','GISS-E2-H','GISS-E2-R',
 ##               'MIROC5','MIROC-ESM','MIROC-ESM-CHEM','MPI-ESM-LR','MPI-ESM-MR','MRI-CGCM3','NorESM1-M')
 
-gcm.list <- c('NorESM1-ME')
+gcm.list <- c('CCSM4')
 
 for (gcm in gcm.list) {
 
@@ -162,7 +162,7 @@ if (1==1) {
 
   full.files <- list.files(path=read.dir,pattern=paste(varname,'_day_',gcm,sep=''))
   split.apart <- unlist(strsplit(unlist(full.files),'_'))
-  runs <- unique(split.apart[grep('r*i1p*',split.apart)])
+  runs <- unique(split.apart[grep('r2i1p*',split.apart)])
 
   move.to <- paste("rsync -av ",read.dir,'/',varname,'_day_',gcm,'*nc ',tmp.dir,sep='')
   print(move.to)
@@ -211,10 +211,7 @@ if (1==1) {
 }
 
 clean.data  <- paste('rm /local_temp/ssobie/*/*',sep='')
-system(clean.data)
+#system(clean.data)
 clean.data  <- paste('rm ', tmp.dir,'*/*nc',sep='')
-system(clean.data)
-
-
-
-system('ls /local_temp/ssobie/*/*')
+#system(clean.data)
+#system('ls /local_temp/ssobie/*/*')
