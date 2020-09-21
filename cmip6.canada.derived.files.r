@@ -49,6 +49,7 @@ time_component <- function(time.file,freq) {
   rv <- list(atts=time.atts,
              dates=dates,
 	     interval=new.int)
+
   return(rv)
       
 }
@@ -76,7 +77,7 @@ space_component <- function(space.file) {
 
 ##----------------------------------------------
 
-get_climdex_info <- function(climdex.name) {
+get_climdex_atts <- function(climdex.name) {
 
   climdex.names <- list(climdex.fd=c('fdETCCDI','Ann','days'),
                         climdex.su=c('suETCCDI','Ann','days'),
@@ -99,6 +100,7 @@ get_climdex_info <- function(climdex.name) {
                         climdex.rx2day=c('rx2dayETCCDI','Mon','mm'),
                         climdex.rx5day=c('rx5dayETCCDI','Mon','mm'),
                         climdex.sdii=c('sdiiETCCDI','Ann','mm d-1'),
+                        climdex.r1mm=c('r1mmETCCDI','Ann','days'),
                         climdex.r10mm=c('r10mmETCCDI','Ann','days'),
                         climdex.r20mm=c('r20mmETCCDI','Ann','days'),
                         climdex.cdd=c('cddETCCDI','Ann','days'),
@@ -127,13 +129,14 @@ create_base_files <- function(var.name,var.units,long.name,
 
   ##--------------------------------------------------------------
   ##Create new netcdf file
+  missing.value <- 1.0e+20 ##ncatt_get(gcm.nc,varid=var.name,attname='missing_value')$value
   x.geog <- ncdim_def('lon', 'degrees_east', space.info$lon)
   y.geog <- ncdim_def('lat', 'degrees_north', space.info$lat)
   t.geog <- ncdim_def('time', time.info$atts$units, time.info$dates,
                       unlim=FALSE, calendar=time.info$atts$calendar)
   
   var.geog <- ncvar_def(var.name, units=var.units, dim=list(x.geog, y.geog, t.geog),
-                        missval=-32768.)
+                        missval=missing.value)
   print('Create this file')			
   print(paste(write.dir,write.clim.name,sep=''))
   file.nc <- nc_create(paste(write.dir,write.clim.name,sep=''), var.geog)
@@ -173,7 +176,8 @@ create_base_files <- function(var.name,var.units,long.name,
   
   ##Variable Attributes
   ncatt_put(file.nc,varid=var.name,attname='units',attval=var.units)
-  ncatt_put(file.nc,varid=var.name,attname='_FillValue',attval=-32768.)
+  ncatt_put(file.nc,varid=var.name,attname='_FillValue',attval=missing.value)
+  ncatt_put(file.nc,varid=var.name,attname='missing_value',attval=missing.value)
   ncatt_put(file.nc,varid=var.name,attname='standard_name',attval=long.name)
   ncatt_put(file.nc,varid=var.name,attname='long_name',attval=long.name)
   ncatt_put(file.nc,varid=0,attname='history',attval='')
@@ -189,12 +193,16 @@ create_base_files <- function(var.name,var.units,long.name,
 
 ##------------------------------------------------------------------------
 
-make_degree_day_files <- function(degree.names,gcm,scenario,run,
+make_degree_day_files <- function(degree.names,gcm,scenario,run,freq,
                                   gcm.file,write.dir,tmp.dir) {
   
   ##degree.names <- c('cdd','fdd','gdd','hdd')
 
-  freq <- 'Ann'
+  freq <- freq ##'Ann'
+  file.seas <- switch(freq,
+                      Ann='annual',
+                      Seas='seasonal',
+                      Mon='monthly')
 
   out.dir <- paste(tmp.dir,'degree_days/',sep='')
   if (!file.exists(out.dir)) {
@@ -212,11 +220,16 @@ make_degree_day_files <- function(degree.names,gcm,scenario,run,
   		     	  gdd='Growing Degree Days',
                           hdd='Heating Degree Days')
 
-      ###dd.files[d] <- write.dd.name <- paste0(degree.name,'_annual_',gcm,'_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
-      write.dd.name <- gsub(pattern=paste0('tasmax_day'),
-                            replacement=paste0(degree.name,'_annual'),
-                            gcm.file)
-      dd.files[d] <- gsub(pattern='[0-9]{8}-[0-9]{8}',replacement=time.info$interval,write.dd.name) 
+      dd.files[d] <- write.dd.name <- paste0(degree.name,'_',file.seas,'_BCCAQv2+ANUSPLIN300_',
+                    gcm,'_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
+      ###write.dd.name <- gsub(pattern=paste0('tasmax_day'),
+      ###                      replacement=paste0(degree.name,'_annual'),
+      ###                      gcm.file)
+      if (gcm=='ANUSPLIN' | gcm=='PNWNAmet') {
+           write.dd.name <- paste0(degree.name,'_',file.seas,'_',gcm,'_observations_',time.info$interval,'.nc')
+      }
+ 
+      ###dd.files[d] <- gsub(pattern='[0-9]{8}-[0-9]{8}',replacement=time.info$interval,write.dd.name) 
 
       create_base_files(degree.name,'degree_days',long.name,
                         gcm,gcm.nc,
@@ -225,7 +238,6 @@ make_degree_day_files <- function(degree.names,gcm,scenario,run,
                         tmp.dir,out.dir)
   }
   nc_close(gcm.nc)
-
   return(dd.files)
 }
 
@@ -258,18 +270,22 @@ make_return_period_file <- function(var.name,gcm,scenario,run,
                        tasmax='degC',
                        tasmin='degC',
                        pr='mm day-1')
-  ##write.rp.name <- paste0(var.name,'_annual_maximum_BCCAQ2v2+ANUSPLIN300_',gcm,
-  ##                        '_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
-  ##if (var.name=='tasmin') {
-  ##    write.rp.name <- paste0(var.name,'_annual_minimum_BCCAQ2v2+ANUSPLIN300_',gcm,
-  ##                     '_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
-  ##}
-  write.rp.name <- gsub(pattern=paste0(var.name,'_day'),
-                        replacement=paste0(var.name,'_annual_',var.type),
-                        gcm.file)
-  write.rp.name <- gsub(pattern='[0-9]{8}-[0-9]{8}',replacement=time.info$interval,write.rp.name) 
 
+  ##For the PNWNAmet files
+  write.rp.name <- paste0(var.name,'_annual_maximum_BCCAQv2+ANUSPLIN300_',gcm,
+                          '_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
+  if (var.name=='tasmin') {
+      write.rp.name <- paste0(var.name,'_annual_minimum_BCCAQv2+ANUSPLIN300_',gcm,
+                       '_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
+  }
+  ##write.rp.name <- gsub(pattern=paste0(var.name,'_day'),
+  ##                      replacement=paste0(var.name,'_annual_',var.type),
+  ##                      gcm.file)
+  ##write.rp.name <- gsub(pattern='[0-9]{8}-[0-9]{8}',replacement=time.info$interval,write.rp.name) 
 
+  if (gcm=='ANUSPLIN' | gcm=='PNWNAmet') {
+      write.rp.name <- paste0(var.name,'_annual_',var.type,'_observations_',time.info$interval,'.nc')
+  }
 
   create_base_files(var.name,var.units,long.name,
                     gcm,gcm.nc,    
@@ -309,12 +325,15 @@ make_quantile_file <- function(var.name,gcm,scenario,run,pctl,
                       tasmin='degC',
                       pr='mm day-1')
 
-  ###write.qts.name <- paste0(var.name,'_annual_quantile_',pctl,'_BCCAQ2v2+ANUSPLIN300_',gcm,
-  ###                   '_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
-  write.qts.name <- gsub(pattern=paste0(var.name,'_day'),
-                          replacement=paste0(var.name,'_annual_quantile_',pctl),
-                          gcm.file)
-  write.qts.name <- gsub(pattern='[0-9]{8}-[0-9]{8}',replacement=time.info$interval,write.qts.name) 
+  write.qts.name <- paste0(var.name,'_annual_quantile_',pctl,'_BCCAQv2+ANUSPLIN300_',gcm,
+                    '_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
+  ###write.qts.name <- gsub(pattern=paste0(var.name,'_day'),
+  ###                        replacement=paste0(var.name,'_annual_quantile_',pctl),
+  ###                        gcm.file)
+  ###write.qts.name <- gsub(pattern='[0-9]{8}-[0-9]{8}',replacement=time.info$interval,write.qts.name) 
+  if (gcm=='ANUSPLIN' | gcm=='PNWNAmet') {
+      write.qts.name <- paste0(var.name,'_annual_quantile_',pctl,'_',gcm,'_observations_',time.info$interval,'.nc')
+  }
 
   create_base_files(var.name,var.units,paste0(long.name,' ',pctl),
       		      gcm,gcm.nc,    
@@ -357,12 +376,15 @@ make_annual_file <- function(var.name,gcm,scenario,run,
   if (!file.exists(out.dir)) {
     dir.create(out.dir,recursive=TRUE)
   }      
-  ###write.ann.name <- paste0(var.name,'_annual_',var.type,'_BCCAQ2v2+ANUSPLIN300_',gcm,
-  ###                         '_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
-  write.ann.name <- gsub(pattern=paste0(var.name,'_day'),
-                          replacement=paste0(var.name,'_annual_',var.type),
-                          gcm.file)
-  write.ann.name <- gsub(pattern='[0-9]{8}-[0-9]{8}',replacement=time.info$interval,write.ann.name) 
+  write.ann.name <- paste0(var.name,'_annual_',var.type,'_BCCAQv2+ANUSPLIN300_',gcm,
+                           '_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
+  ###write.ann.name <- gsub(pattern=paste0(var.name,'_day'),
+  ###                        replacement=paste0(var.name,'_annual_',var.type),
+  ###                        gcm.file)
+  ###write.ann.name <- gsub(pattern='[0-9]{8}-[0-9]{8}',replacement=time.info$interval,write.ann.name) 
+  if (gcm=='ANUSPLIN' | gcm=='PNWNAmet') {
+     write.ann.name <- paste0(var.name,'_annual_',var.type,'_',gcm,'_observations_',time.info$interval,'.nc')
+  }
 
   create_base_files(var.name,var.units,paste0('Annual ',long.name),
                     gcm,gcm.nc,
@@ -403,12 +425,15 @@ make_seasonal_file <- function(var.name,gcm,scenario,run,
   if (!file.exists(out.dir)) {
     dir.create(out.dir,recursive=TRUE)
   }      
-  ###write.seas.name <- paste0(var.name,'_seasonal_',var.type,'_BCCAQ2v2+ANUSPLIN300_',gcm,
-  ###                         '_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
-  write.seas.name <- gsub(pattern=paste0(var.name,'_day'),
-                          replacement=paste0(var.name,'_seasonal_',var.type),
-                          gcm.file)
-  write.seas.name <- gsub(pattern='[0-9]{8}-[0-9]{8}',replacement=time.info$interval,write.seas.name) 
+  write.seas.name <- paste0(var.name,'_seasonal_',var.type,'_BCCAQv2+ANUSPLIN300_',gcm,
+                           '_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
+  ###write.seas.name <- gsub(pattern=paste0(var.name,'_day'),
+  ###                        replacement=paste0(var.name,'_seasonal_',var.type),
+  ###                        gcm.file)
+  ###write.seas.name <- gsub(pattern='[0-9]{8}-[0-9]{8}',replacement=time.info$interval,write.seas.name) 
+  if (gcm=='ANUSPLIN' | gcm=='PNWNAmet') {
+     write.seas.name <- paste0(var.name,'_seasonal_',var.type,'_',gcm,'_observations_',time.info$interval,'.nc')
+  }
 
   create_base_files(var.name,var.units,paste0('Seasonal ',long.name),
                     gcm,gcm.nc,
@@ -448,12 +473,15 @@ make_monthly_file <- function(var.name,gcm,scenario,run,
   if (!file.exists(out.dir)) {
     dir.create(out.dir,recursive=TRUE)
   }      
-  ###write.mon.name <- paste0(var.name,'_monthly_',var.type,'_BCCAQ2v2+ANUSPLIN300_',gcm,
-  ###                         '_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
-  write.mon.name <- gsub(pattern=paste0(var.name,'_day'),
-                          replacement=paste0(var.name,'_monthly_',var.type),
-                          gcm.file)
-  write.mon.name <- gsub(pattern='[0-9]{8}-[0-9]{8}',replacement=time.info$interval,write.mon.name) 
+  write.mon.name <- paste0(var.name,'_monthly_',var.type,'_BCCAQv2+ANUSPLIN300_',gcm,
+                           '_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
+  ###write.mon.name <- gsub(pattern=paste0(var.name,'_day'),
+  ###                        replacement=paste0(var.name,'_monthly_',var.type),
+  ###                        gcm.file)
+  ###write.mon.name <- gsub(pattern='[0-9]{8}-[0-9]{8}',replacement=time.info$interval,write.mon.name) 
+  if (gcm=='ANUSPLIN' | gcm=='PNWNAmet') {
+     write.mon.name <- paste0(var.name,'_monthly_',var.type,'_',gcm,'_observations_',time.info$interval,'.nc')
+  }
 
   create_base_files(var.name,var.units,paste0('Monthly ',long.name),
                     gcm,gcm.nc,
@@ -470,19 +498,16 @@ make_monthly_file <- function(var.name,gcm,scenario,run,
 ##CLIMDEX
 
 make_climdex_file <- function(var.name,gcm,scenario,run,
-                              gcm.file,write.dir,tmp.dir) {
+                              gcm.file,out.dir,tmp.dir) {
 
   gcm.nc <- nc_open(paste0(tmp.dir,gcm.file))
   gcm.var <- strsplit(gcm.file,'_')[[1]][1]
   if (!file.exists(out.dir)) {
     dir.create(out.dir,recursive=TRUE)
   }
-  if (!file.exists(paste0(write.dir,'climdex/'))) {
-     dir.create(paste0(write.dir,'climdex/'),recursive=TRUE)
-  }   
 
   print(var.name)
-  climdex.info <- get_climdex_info(paste0('climdex.',var.name))
+  climdex.info <- get_climdex_atts(paste0('climdex.',var.name))
   climdex.var <- climdex.info[1]
   climdex.calendar <- climdex.info[2]
   climdex.units <- climdex.info[3]
@@ -495,7 +520,11 @@ make_climdex_file <- function(var.name,gcm,scenario,run,
                           replacement=paste0(climdex.var,'_',tolower(climdex.calendar)),
                           gcm.file)
   write.clim.name <- gsub(pattern='[0-9]{8}-[0-9]{8}',replacement=time.info$interval,write.clim.name) 
-  ###write.clim.name <- paste0(climdex.var,'_',tolower(climdex.calendar),'_BCCAQ2v2+ANUSPLIN300_',gcm,
+  if (gcm=='ANUSPLIN' | gcm=='PNWNAmet') {
+       write.clim.name <- paste0(climdex.var,'_',tolower(climdex.calendar),'_',gcm,'_observations_',time.info$interval,'.nc')
+  }
+  ##For BCCAQv2 Downscaled
+  ###write.clim.name <- paste0(climdex.var,'_',tolower(climdex.calendar),'_BCCAQv2+ANUSPLIN300_',gcm,
   ###                  '_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
 
   create_base_files(climdex.var,var.units,toupper(climdex.var),

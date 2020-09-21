@@ -1,13 +1,15 @@
 ###Script to assemble a human readable inventory of CMIP5 data at PCIC
 
 ##base.dir <- '/storage/data/climate/CMIP5/incoming/output1/'
-##base.dir <- '/storage/data/climate/CMIP5/output/'
-base.dir <- '/storage/data/climate/downscale/BCCAQ2/CMIP5/'
+base.dir <- '/storage/data/climate/CMIP5/output/'
+##base.dir <- '/storage/data/climate/downscale/BCCAQ2/CMIP5/'
 
 write.dir <- '/storage/data/projects/rci/stat.downscaling/inventories/'
-variable <- 'tasmin'
+variable <- 'tasmax'
 
-header <- c('Minimum Temperature','Location: ',base.dir,'')
+header <- c('Maximum Temperature','Location: ',base.dir,'')
+##header <- c('Minimum Temperature','Location: ',base.dir,'')
+##header <- c('Precipitation','Location: ',base.dir,'')
 
 centres <- list.dirs(path=base.dir,full.names=FALSE,recursive=FALSE)
 omit <- 'tmp_src'
@@ -16,7 +18,7 @@ centres <- centres[!(centres==omit)]
 if (1==1) {
 full.names <- full.list <- c('Centre','Model','Scenario','Run','Start','End','Version')
 
-scen.list <- c('historical','rcp26','rcp45','rcp60','rcp85')
+scen.list <- c('historical','historicalGHG','historicalNat','historicalMisc','rcp26','rcp45','rcp60','rcp85')
 
 for (c in seq_along(centres)) {
   centre <- centres[c]
@@ -90,3 +92,4 @@ for (m in seq_along(models)) {
 
 ##write.table(rbind(header,read.list),file=paste0(write.dir,variable,'_CMIP5_model_inventory.csv'),quote=FALSE,row.name=F,col.name=F,sep=',')
 ##write.table(rbind(header,read.list),file=paste0(write.dir,variable,'_CMIP5_incoming_model_inventory.csv'),quote=FALSE,row.name=F,col.name=F,sep=',')
+write.table(rbind(header,read.list),file=paste0(write.dir,variable,'_CMIP5_output_model_inventory.csv'),quote=FALSE,row.name=F,col.name=F,sep=',')

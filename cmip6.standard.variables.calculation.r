@@ -24,6 +24,10 @@ gcm_unit_conversion <- function(varname,gcm.subset,gcm.nc) {
                    pr='kg m-2 d-1',
                    tasmax='degC',
                    tasmin='degC')
+   if (!(varname %in% c('pr','tasmax','tasmin'))) {
+      print(paste0('Varname: ',varname,' Var.units: ',var.units))
+      stop('Incorrect units for conversion')
+   }
 
    var.units <- ncatt_get(gcm.nc,varname,'units')$value
    if (var.units != units) {
@@ -39,7 +43,7 @@ gcm_unit_conversion <- function(varname,gcm.subset,gcm.nc) {
 ##****************************************************************
 testing <- FALSE
 
-res <- 'gr2'
+res <- NULL
 if (testing) {
    tmpdir <- '/local_temp/ssobie'
    gcm <- 'BCC-CSM2-MR'
@@ -75,7 +79,7 @@ if (!file.exists(write.dir))
 ##Transfer template files for derived file creation
 gcm.dir <- paste0(base.dir,'assembled/',gcm,'/')
 var.files <- list.files(path=gcm.dir,pattern=varname)
-rcp.files <- var.files[grep(scenario,var.files)]
+rcp.files <- var.files[grep(paste0('historical\\+',scenario),var.files)]
 if (is.null(res)) {
    gcm.file <- rcp.files[grep(run,rcp.files)]
 } else {
@@ -173,10 +177,13 @@ for (j in 1:n.lat) {
 
    print(paste0('Latitude: ',j,' of ',n.lat))
    gcm.subset <- ncvar_get(gcm.nc,varname,start=c(1,j,1),count=c(-1,1,-1))
-   flag <- is.na(gcm.subset[,1])
-   gcm.list <- vector(mode='list',length=n.lon)
-   gcm.list <- lapply(seq_len(nrow(gcm.subset)), function(k) gcm.subset[k,])
+   gcm.converted <- gcm_unit_conversion(varname,gcm.subset,gcm.nc)
    rm(gcm.subset)
+
+   flag <- is.na(gcm.converted[,1])
+   gcm.list <- vector(mode='list',length=n.lon)
+   gcm.list <- lapply(seq_len(nrow(gcm.converted)), function(k) gcm.converted[k,])
+   rm(gcm.converted)
 
    ##----------------------------------------------------------
    ##Annual Averages 

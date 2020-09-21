@@ -26,6 +26,7 @@ get_dates_from_file <- function(file) {
 make_subsets <- function(tmp.dir) {
   print('Making subsets')
   files <- list.files(path=paste0(tmp.dir,'grouptmp'),full.name=T)
+
   dates <- lapply(files,get_dates_from_file)
   
   hist.ix <- grep('_historical_',files)
@@ -104,7 +105,12 @@ check_for_duplicate_files <- function(files) {
     series <- unlist(lapply(dates,function(x){seq(x[1],by='day',x[2])}))
 
     if (any((range(diff(series)) < 1 | range(diff(series)) > 10 ))) {
-       browser()
+       print(files)
+       print(range(diff(series)))
+       print(char.dates[which(diff(series) < 1)])
+       print(char.dates[which(diff(series) > 10)])
+
+       ##browser()
        stop('Duplicate years or missing files')
     }
 }
@@ -116,6 +122,7 @@ group_files <- function(files,tmp.dir,base.dir,scenarios) {
    ##All scenarios including historical
    for (scenario in scenarios) {
      h.ix <- grep(paste0('_',scenario,'_'),files)    
+
      if (length(h.ix) > 1) {
         ##Check for duplicates
         check_for_duplicate_files(files[h.ix])       
@@ -142,15 +149,19 @@ group_files <- function(files,tmp.dir,base.dir,scenarios) {
 ##-----------------------------------------------------------------------------
 ##*****************************************************************************
 
-args <- commandArgs(trailingOnly=TRUE)
-for(i in 1:length(args)){
-    eval(parse(text=args[[i]]))
-}
+testing <- FALSE
 
-##varname <- 'tasmax'
-##centre <- 'NOAA-GFDL'
-##scenario <- 'ssp585'
-##tmpdir <- '/local_temp/ssobie/assembly'
+if (testing) {
+   varname <- 'tasmin'
+   centre <- 'NCC'
+   scenario <- 'ssp585'
+   tmpdir <- '/local_temp/ssobie/assembly'
+} else {
+   args <- commandArgs(trailingOnly=TRUE)
+   for(i in 1:length(args)){
+      eval(parse(text=args[[i]]))
+   }
+}
 
 
 tmp.dir <- paste0(tmpdir,'/',centre,'/',varname,'/',scenario,'/') ##'/local_temp/ssobie/cmip5/' ##
@@ -209,22 +220,24 @@ centre.info <- list()
    names(add.list) <- centre
    centre.info <- append(centre.info,add.list)
 
-
+   
 ##----------------------------------------------------------------------
 
    gcm.list <- centre.info[[centre]]
-   centre.gcms <- names(gcm.list)
+   centre.gcms <-  "MIROC-ES2L" ######names(gcm.list) ##
 
    for (gcm in centre.gcms) {
       print(gcm)
       gcm.info <- gcm.list[[gcm]]     
+      gcm.info$runs <- 'r1i1p1f2'
+
       used.files <- c()      
       for (run in gcm.info$runs) {
          print(run)
          run.grid.files <- gcm.info$files[grep(run,gcm.info$files)]
          for (grid in gcm.info$grids) {
             print(grid)
-            run.files <- run.grid.files[grep(grid,gcm.info$files)]
+            run.files <- run.grid.files[grep(grid,run.grid.files)]
 
             if (length(run.files) > 1) {
                used.run.files <- group_files(run.files,tmp.dir,tmp.dir,scen.list)    

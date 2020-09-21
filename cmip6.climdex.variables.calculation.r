@@ -16,7 +16,7 @@ library(PCICt)
 library(climdex.pcic)
 library(foreach)
 library(doParallel)
-registerDoParallel(cores=2) # or some other number that you're comfortable with.
+registerDoParallel(cores=1) # or some other number that you're comfortable with.
 
 ##--------------------------------------------------------------
 
@@ -28,6 +28,11 @@ gcm_unit_conversion <- function(varname,gcm.subset,gcm.nc) {
                    tasmin='degC')                    
 
    var.units <- ncatt_get(gcm.nc,varname,'units')$value
+
+   if (!(varname %in% c('pr','tasmax','tasmin'))) {           
+      print(paste0('Varname: ',varname,' Var.units: ',var.units))
+      stop('Incorrect units for conversion')
+   }
    if (var.units != units) {
       rv <- ud.convert(gcm.subset,var.units,units)
    } else {
@@ -41,15 +46,15 @@ gcm_unit_conversion <- function(varname,gcm.subset,gcm.nc) {
 ##****************************************************************
 testing <- FALSE
 
-res <- 'gr1'
+res <- NULL
 if (testing) {
    tmpdir <- '/local_temp/ssobie'
-   gcm <- 'BCC-CSM2-MR'
-   scenario <- 'ssp585'
+   gcm <- 'GFDL-ESM4'
+   scenario <- 'ssp245'
    run <- 'r1i1p1f1'
    res <- NULL
    type <- 'annual'
-   climname <- 'prcptot'
+   climname <- 'r1mm'
 } else {
    args <- commandArgs(trailingOnly=TRUE)
    for(i in 1:length(args)){
@@ -59,7 +64,8 @@ if (testing) {
 
 varname <- input.varname[[climname]]
 climdex.name <- paste0('climdex.',climname)
-climdex.info <- get.climdex.info(climdex.name)
+climdex.info <- get_climdex_info(climdex.name)
+
 
 tmp.dir <- paste0(tmpdir,'/',gcm,'_',scenario,'_',run,'_climdex_',type,'_',varname,'/')
 if (!file.exists(tmp.dir)) {
@@ -80,7 +86,7 @@ if (!file.exists(write.dir))
 
 gcm.dir <- paste0(base.dir,'assembled/',gcm,'/')
 var.files <- list.files(path=gcm.dir,pattern=varname)
-rcp.files <- var.files[grep(scenario,var.files)]
+rcp.files <- var.files[grep(paste0('historical\\+',scenario),var.files)]
 
 if (is.null(res)) {
    gcm.file <- rcp.files[grep(run,rcp.files)]
@@ -159,12 +165,13 @@ for (j in 1:n.lat) {
    print(paste0('Latitude: ',j,' of ',n.lat))
    lat.ix <- j
    gcm.subset <- ncvar_get(gcm.nc,varname,start=c(1,j,1),count=c(-1,1,-1))
-   gcm.subset <- gcm_unit_conversion(varname,gcm.subset,gcm.nc)
-
-   flag <- is.na(gcm.subset[,1])
-   gcm.list <- vector(mode='list',length=n.lon)
-   gcm.list <- lapply(seq_len(nrow(gcm.subset)), function(k) gcm.subset[k,])
+   gcm.converted <- gcm_unit_conversion(varname,gcm.subset,gcm.nc)
    rm(gcm.subset)
+
+   flag <- is.na(gcm.converted[,1])
+   gcm.list <- vector(mode='list',length=n.lon)
+   gcm.list <- lapply(seq_len(nrow(gcm.converted)), function(k) gcm.converted[k,])
+   rm(gcm.converted)
 
     ##----------------------------------------------------------
     ##Annual Averages 

@@ -40,11 +40,11 @@ testing <- FALSE
 res <- NULL
 if (testing) {
    tmpdir <- '/local_temp/ssobie'
-   gcm <- 'BCC-CSM2-MR'
-   scenario <- 'ssp585'
+   gcm <- 'GFDL-CM4'
+   scenario <- 'ssp245'
    run <- 'r1i1p1f1'
-   res <- NULL
-   type <- 'gsl'
+   res <- 'gr1'
+   type <- 'degree_days'
 } else {
    args <- commandArgs(trailingOnly=TRUE)
    for(i in 1:length(args)){
@@ -71,12 +71,12 @@ if (!file.exists(write.dir))
 ##Transfer template files for derived file creation
 
 gcm.dir <- paste0(base.dir,'assembled/',gcm,'/')
-rcp.files <- list.files(path=gcm.dir,pattern=scenario)
+rcp.files <- list.files(path=gcm.dir,pattern=paste0('historical\\+',scenario))
 
 if (is.null(res)) {
    run.files <- rcp.files[grep(run,rcp.files)]
 } else {
-   res.file <- rcp.files[grep(res,rcp.files)] ##Include for GCMs with multiple resolutions
+   res.files <- rcp.files[grep(res,rcp.files)] ##Include for GCMs with multiple resolutions
    run.files <- res.files[grep(run,res.files)]
 }
 
@@ -84,9 +84,9 @@ tasmax.file <- run.files[grep('tasmax',run.files)]
 tasmin.file <- run.files[grep('tasmin',run.files)]
 
 if (length(tasmax.file)!=1 | length(tasmin.file) !=1) {
-   stop('More than one tasmax or tasmin file selected')
    print(tasmax.file)
    print(tasmin.file)
+   stop('More than one tasmax or tasmin file selected')
 }
 
 file.copy(from=paste0(gcm.dir,tasmax.file),to=tmp.dir)
@@ -95,9 +95,10 @@ print('Done copying gcm file')
 
 if (type=='degree_days') {
   print('Degree days opening')
+  freq <- 'Ann'
   out.dir <- paste0(tmp.dir,'degree_days/')
   dir.create(paste0(write.dir,'degree_days/'),recursive=TRUE,showWarnings=FALSE)
-  dd.files <-  make_degree_day_files(degree.names,gcm,scenario,run,
+  dd.files <-  make_degree_day_files(degree.names,gcm,scenario,run,freq,
                                      tasmax.file,out.dir,tmp.dir)
   dd.ncs <- vector(mode='list',length=length(dd.files))
   for (d in seq_along(dd.files)) {
