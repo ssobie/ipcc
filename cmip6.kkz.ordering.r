@@ -17,17 +17,50 @@ standard.climdex.names <- c('cddETCCDI','csdiETCCDI','cwdETCCDI','dtrETCCDI',
                          'txnETCCDI','txxETCCDI',
                          'wsdiETCCDI')
 
-
+##-----------------------------------------------------------------------------------
+cmip6.list <- list(c('ACCESS-CM2','r1i1p1f1'),
+                   c('ACCESS-ESM1-5','r1i1p1f1'),
+                   c('BCC-CSM2-MR','r1i1p1f1'),
+                   c('CanESM5','r10i1p2f1'),
+                   c('CNRM-CM6-1','r1i1p1f2'),
+                   c('CNRM-ESM2-1','r1i1p1f2'),
+                   c('EC-Earth3','r4i1p1f1'),
+                   c('EC-Earth3-Veg','r1i1p1f1'),
+                   c('FGOALS-g3','r1i1p1f1'),
+                   c('GFDL-ESM4','r1i1p1f1'),
+                   c('HadGEM3-GC31-LL','r1i1p1f3'),
+                   c('INM-CM4-8','r1i1p1f1'),
+                   c('INM-CM5-0','r1i1p1f1'),
+                   c('IPSL-CM6A-LR','r1i1p1f1'),
+                   c('KACE-1-0-G','r2i1p1f1'),
+                   c('KIOST-ESM','r1i1p1f1'),
+                   c('MIROC6','r1i1p1f1'),
+                   c('MIROC-ES2L','r1i1p1f2'),
+                   c('MPI-ESM1-2-HR','r1i1p1f1'),
+                   c('MPI-ESM1-2-LR','r1i1p1f1'),
+                   c('MRI-ESM2-0','r1i1p1f1'),
+                   c('NESM3','r1i1p1f1'),
+                   c('NorESM2-LM','r1i1p1f1'),
+                   c('NorESM2-MM','r1i1p1f1'),
+                   c('UKESM1-0-LL','r1i1p1f2'))
 
 ##-----------------------------------------------------------------------------------
-region <- 'NWN'
+region <- 'CAN'
 
 
 read.dir <- '/storage/data/climate/CMIP6/KKZ/'
 write.dir <- '/storage/data/climate/CMIP6/KKZ/model_rankings/'
 
-method.files <- list.files(path=read.dir,pattern=paste0(region,'_'))
-cmip6.files <- method.files[grep('2081-2100_1986-2005',method.files)]
+write.file <- paste0(write.dir,region,'_ordered_CMIP6_climdex_KKZ_CanESM5_r10i1p2f1.csv')
+
+##method.files <- list.files(path=read.dir,pattern=paste0(region,'_'))
+##cmip6.files <- method.files[grep('2081-2100_1986-2005',method.files)]
+
+cmip6.files <- rep('A',length(cmip6.list))
+for (m in seq_along(cmip6.files)) {
+   model.info <- cmip6.list[[m]]  
+   cmip6.files[m] <- paste0(region,'_',model.info[1],'_ssp245_',model.info[2],'_climdex_2081-2100_1986-2005.RData')
+}
 
 projection.matrix <- matrix(NA,nrow=length(cmip6.files),ncol=27)
 
@@ -89,7 +122,8 @@ for(i in 3:nrow(climdex.kkz$cases.newdata)) {
     if (kkz.all.lower == 27 & kkz.all.upper == 27 ) { 
         print(cbind(models[1:i],runs[1:i]))
         output <- rbind(c('Order','Model','Run'),cbind(1:i,models[1:i],runs[1:i]))
-        write.table(output,file=paste0(write.dir,region,'_ordered_CMIP6_climdex_KKZ.csv'),quote=F,row.name=F,col.name=F,sep=',')
+        write.table(output,file=write.file,quote=F,row.name=F,col.name=F,sep=',')
+        print('Finished')
         browser()
     }
 

@@ -224,12 +224,12 @@ centre.info <- list()
 ##----------------------------------------------------------------------
 
    gcm.list <- centre.info[[centre]]
-   centre.gcms <-  "MIROC-ES2L" ######names(gcm.list) ##
+   centre.gcms <-  "KIOST-ESM" ######names(gcm.list) ##
 
    for (gcm in centre.gcms) {
       print(gcm)
       gcm.info <- gcm.list[[gcm]]     
-      gcm.info$runs <- 'r1i1p1f2'
+      gcm.info$runs <- 'r1i1p1f1'
 
       used.files <- c()      
       for (run in gcm.info$runs) {

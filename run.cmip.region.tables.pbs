@@ -1,0 +1,23 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=1
+#PBS -l pmem=2000mb
+#PBS -l walltime=24:00:00
+#PBS -d /storage/home/ssobie/code/repos/ipcc/
+#PBS -o /storage/home/ssobie/code/repos/ipcc/cmip.reg.stdout.log
+#PBS -e /storage/home/ssobie/code/repos/ipcc/cmip.reg.stderr.log
+#PBS -N reg_rp1_all
+
+scenario='ssp126'
+type='return_periods'
+cmip='CMIP6'
+region='canada_boundary'
+
+cd /storage/home/ssobie/code/repos/ipcc/
+echo "Current working directory is `pwd`"
+
+module load R
+module load netcdf-bin
+module load nco-bin
+module load gdal
+
+nohup R CMD BATCH --no-save --no-restore "--args tmpdir='$TMPDIR' scenario='$scenario' type='$type' cmip='$cmip' region='$region'" cmip.region.tables.r "./cmip.reg.tables.${cmip}.${type}.${scenario}.${region}.out"

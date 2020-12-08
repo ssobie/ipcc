@@ -54,6 +54,7 @@ gcm.list <- list(list(gcm='ACCESS-CM2',runs='r1i1p1f1'),
                  list(gcm='INM-CM5-0',runs='r1i1p1f1'),
                  list(gcm='IPSL-CM6A-LR',runs='r1i1p1f1'),
                  list(gcm='KACE-1-0-G',runs='r2i1p1f1'),
+                 list(gcm='KIOST-ESM',runs='r1i1p1f1'),
                  list(gcm='MIROC6',runs='r1i1p1f1'),
                  list(gcm='MIROC-ES2L',runs='r1i1p1f2'),
                  list(gcm='MPI-ESM1-2-HR',runs='r1i1p1f1'),
@@ -65,8 +66,32 @@ gcm.list <- list(list(gcm='ACCESS-CM2',runs='r1i1p1f1'),
                  list(gcm='UKESM1-0-LL',runs='r1i1p1f2'))
 
 ###Add GCFL-CM4 separately to include the resolution difference
+gcm.list <- list(list(gcm='CNRM-CM6-1',runs='r1i1p1f2'),
+                 list(gcm='CNRM-ESM2-1',runs='r1i1p1f2'),
+                 list(gcm='EC-Earth3',runs='r4i1p1f1'),
+                 list(gcm='EC-Earth3-Veg',runs='r1i1p1f1'),
+                 list(gcm='FGOALS-g3',runs='r1i1p1f1'),
+                 list(gcm='GFDL-ESM4',runs='r1i1p1f1'),
+                 list(gcm='HadGEM3-GC31-LL',runs='r1i1p1f3'),
+                 list(gcm='INM-CM4-8',runs='r1i1p1f1'),
+                 list(gcm='INM-CM5-0',runs='r1i1p1f1'),
+                 list(gcm='IPSL-CM6A-LR',runs='r1i1p1f1'),
+                 list(gcm='KACE-1-0-G',runs='r2i1p1f1'),
+                 list(gcm='KIOST-ESM',runs='r1i1p1f1'),
+                 list(gcm='MIROC6',runs='r1i1p1f1'),
+                 list(gcm='MIROC-ES2L',runs='r1i1p1f2'),
+                 list(gcm='MPI-ESM1-2-HR',runs='r1i1p1f1'),
+                 list(gcm='MPI-ESM1-2-LR',runs='r1i1p1f1'),
+                 list(gcm='MRI-ESM2-0',runs='r1i1p1f1'),
+                 list(gcm='NESM3',runs='r1i1p1f1'),
+                 list(gcm='NorESM2-LM',runs='r1i1p1f1'),
+                 list(gcm='NorESM2-MM',runs='r1i1p1f1'),
+                 list(gcm='UKESM1-0-LL',runs='r1i1p1f2'))
 
-##gcm.list <- list(list(gcm='CanESM5',runs=c('r10i1p2f1')))
+
+gcm.list <- list(list(gcm='CanESM5',runs=c('r7i1p2f1','r8i1p2f1','r9i1p2f1',
+                          'r10i1p2f1')))
+
 
 ##--------------------------------------------------------------------
 
@@ -96,14 +121,16 @@ res <- NULL
 type <- 'climdex'
 past.int <- '1986-2005'
 proj.int <- '2081-2100'
-region <- 'NEN'
+region <- 'CAN'
 res <- NULL
 
 ##-------------------
 ##Load the IPCC-WGI shapfiles
-shape.dir <- '/storage/data/projects/rci/data/assessments/shapefiles/ipcc_regions_v4' 
-ipcc.v4 <- readOGR(shape.dir,'IPCC-WGI-reference-regions-v4')
+##shape.dir <- '/storage/data/projects/rci/data/assessments/shapefiles/ipcc_regions_v4' 
+##ipcc.v4 <- readOGR(shape.dir,'IPCC-WGI-reference-regions-v4')
 
+shape.dir <- '/storage/data/projects/rci/data/assessments/shapefiles/bc_common/' 
+ipcc.v4 <- readOGR(shape.dir,"canada_boundary")
 ##-------------------
 
 for (g in seq_along(gcm.list)) {
@@ -124,7 +151,7 @@ for (g in seq_along(gcm.list)) {
 
       save.dir <- '/storage/data/climate/CMIP6/KKZ/'
 
-      files <- list.files(path=read.dir,pattern='*.nc')
+      files <- list.files(path=read.dir,pattern='_annual_')
       past.files <- files[grep(past.int,files)]
       if (length(past.files) != 33) {
          print(paste0('Length of files ',length(files)))
@@ -188,8 +215,8 @@ for (g in seq_along(gcm.list)) {
             Sys.sleep(1)
          } 
 
-         reg.ix <- which(ipcc.v4$Acronym==region)
-         region.shape <- ipcc.v4[reg.ix,]        
+         ###reg.ix <- which(ipcc.v4$Acronym==region)
+         region.shape <- ipcc.v4 ###[reg.ix,]        
          anomaly.brick <- brick(paste0(tmp.dir,anomaly.remap.file))
          print(extent(anomaly.brick))
          if (xmax(anomaly.brick) > 200) {

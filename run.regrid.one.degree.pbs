@@ -1,0 +1,23 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=1
+#PBS -l pmem=5000mb
+#PBS -l walltime=12:00:00
+#PBS -d /storage/home/ssobie/code/repos/ipcc/
+#PBS -o /storage/home/ssobie/code/repos/ipcc/regrid.stdout.log
+#PBS -e /storage/home/ssobie/code/repos/ipcc/regrid.stderr.log 
+#PBS -N dd_one_deg1
+
+experiment='CMIP6'
+ssp='ssp126'
+type='degree_days'
+
+cd /storage/home/ssobie/code/repos/ipcc/
+echo "Current working directory is `pwd`"
+
+module load R
+module load netcdf-bin
+module load nco-bin
+module load gdal
+
+nohup R CMD BATCH --no-save --no-restore "--args tmpdir='$TMPDIR' ssp='$scenario' experiment='$experiment' type='$type'" regrid.cmip.files.r "./out_files/${experiment}.${ssp}.${type}.at.one.degree.out"
+

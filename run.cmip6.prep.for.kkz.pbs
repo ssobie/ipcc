@@ -1,0 +1,18 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=1
+#PBS -l pmem=2000mb
+#PBS -l walltime=12:00:00
+#PBS -d /storage/home/ssobie/code/repos/ipcc/
+#PBS -o /storage/home/ssobie/code/repos/ipcc/kkz.prep.stdout.log
+#PBS -e /storage/home/ssobie/code/repos/ipcc/kkz.prep.stderr.log
+#PBS -N prep
+
+cd /storage/home/ssobie/code/repos/ipcc/
+echo "Current working directory is `pwd`"
+
+module load R
+module load netcdf-bin
+module load cdo
+module load gdal
+
+nohup R CMD BATCH --no-save --no-restore "--args tmpdir='$TMPDIR'" cmip6.prep.for.scenario.selection.r "./kkz.prep.cmip6.out"

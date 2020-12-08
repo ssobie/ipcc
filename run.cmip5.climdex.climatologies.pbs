@@ -1,0 +1,17 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=1
+#PBS -l pmem=2000mb
+#PBS -l walltime=12:00:00
+#PBS -d /storage/home/ssobie/code/repos/ipcc/
+#PBS -o /storage/home/ssobie/code/repos/ipcc/climdex.stdout.log
+#PBS -e /storage/home/ssobie/code/repos/ipcc/climdex.stderr.log
+#PBS -N climdex
+
+cd /storage/home/ssobie/code/repos/ipcc/
+echo "Current working directory is `pwd`"
+
+module load R
+module load netcdf-bin
+module load nco-bin
+
+nohup R CMD BATCH --no-save --no-restore "--args tmpdir='$TMPDIR'" cmip5.climatologies.calculation.r "./climdex.climatologies.cmip5.out"

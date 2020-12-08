@@ -5,10 +5,10 @@
 #PBS -d /storage/home/ssobie/code/repos/ipcc/
 #PBS -o /storage/home/ssobie/code/repos/ipcc/climdex.stdout.log
 #PBS -e /storage/home/ssobie/code/repos/ipcc/climdex.stderr.log 
-#PBS -N Ca10.txp.12
+#PBS -N UK.sp.26
 
-gcm='CanESM5'
-run='r10i1p2f1'
+gcm='UKESM1-0-LL'
+run='r1i1p1f2'
 scenario='ssp126'
 
 cd /storage/home/ssobie/code/repos/ipcc/
@@ -18,5 +18,5 @@ module load R
 module load netcdf-bin
 module load nco-bin
 
-nohup R CMD BATCH --no-save --no-restore "--args tmpdir='$TMPDIR' gcm='$gcm' scenario='$scenario' run='$run'" cmip6.temp.quantiles.climdex.r "./out_files/${gcm}.${scenario}.${run}.temp.climdex.out"
+nohup R CMD BATCH --no-save --no-restore "--args tmpdir='$TMPDIR' gcm='$gcm' scenario='$scenario' run='$run'" cmip6.temp.spells.climdex.r "./out_files/${gcm}.${scenario}.${run}.temp.spells.out"
 

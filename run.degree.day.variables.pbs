@@ -1,11 +1,11 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=2
-#PBS -l pmem=5000mb
-#PBS -l walltime=12:00:00
+#PBS -l nodes=1:ppn=1
+#PBS -l pmem=7500mb
+#PBS -l walltime=60:00:00
 #PBS -d /storage/home/ssobie/code/repos/ipcc/
 #PBS -o /storage/home/ssobie/code/repos/ipcc/dd.stdout.log
 #PBS -e /storage/home/ssobie/code/repos/ipcc/dd.stderr.log 
-
+#PBS -N dd
 cd /storage/home/ssobie/code/repos/ipcc/
 echo "Current working directory is `pwd`"
 
@@ -13,10 +13,10 @@ module load R
 module load netcdf-bin
 module load nco-bin
 
-gcm='BCC-CSM2-MR'
-scenario='ssp585'
-run='r1i1p1f1'
-type='dtr'
+##gcm='UKESM1-0-LL'
+##scenario='ssp585'
+##run='r1i1p1f2'
+##type='degree_days'
 
 nohup R CMD BATCH --no-save --no-restore "--args tmpdir='$TMPDIR' gcm='$gcm' scenario='$scenario' run='$run' type='$type'" cmip6.degree.day.variables.calculation.r "./out_files/${gcm}.${scenario}.${run}.${type}.degree.days.out"
 

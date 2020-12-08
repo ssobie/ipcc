@@ -14,12 +14,12 @@ module load R
 module load netcdf-bin
 module load nco-bin
 
-##gcm='BCC-CSM2-MR'
-##scenario='ssp585'
-##run='r1i1p1f1'
-##type='seasonal'
-##varname='tasmax'
-##pctl='000'
+gcm='GCM'
+scenario='RCP'
+run='RUN'
+type='TYPE'
+varname='VARNAME'
+pctl='000'
 
 nohup R CMD BATCH --no-save --no-restore "--args tmpdir='$TMPDIR' gcm='$gcm' scenario='$scenario' run='$run' type='$type' varname='$varname' pctl='$pctl'" cmip6.standard.variables.calculation.r "./out_files/${gcm}.${scenario}.${run}.${type}.${varname}.${pctl}.out"
 

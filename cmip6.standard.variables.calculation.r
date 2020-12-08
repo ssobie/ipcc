@@ -46,12 +46,12 @@ testing <- FALSE
 res <- NULL
 if (testing) {
    tmpdir <- '/local_temp/ssobie'
-   gcm <- 'BCC-CSM2-MR'
-   scenario <- 'ssp585'
-   run <- 'r1i1p1f1' 
+   gcm <- 'CNRM-CM6-1'
+   scenario <- 'ssp126'
+   run <- 'r1i1p1f2' 
    res <- NULL
    type <- 'annual'
-   varname <- 'tasmax'
+   varname <- 'pr'
    pctl <- '000'
 } else {
    args <- commandArgs(trailingOnly=TRUE)
@@ -68,6 +68,8 @@ if (!file.exists(tmp.dir)) {
 }
 
 base.dir <- '/storage/data/climate/CMIP6/'
+###base.dir <- '/storage/data/climate/CMIP5/daily/'
+
 if (is.null(res)) {
    write.dir <- paste0(base.dir,'/Derived/',gcm,'_',scenario,'_',run,'/')
 } else {
@@ -77,7 +79,9 @@ if (!file.exists(write.dir))
   dir.create(write.dir,recursive=TRUE)
 
 ##Transfer template files for derived file creation
-gcm.dir <- paste0(base.dir,'assembled/',gcm,'/')
+gcm.dir <- paste0(base.dir,'assembled/',gcm,'/') ##For CMIP6
+###gcm.dir <- paste0(base.dir,gcm,'/') ##For CMIP5
+
 var.files <- list.files(path=gcm.dir,pattern=varname)
 rcp.files <- var.files[grep(paste0('historical\\+',scenario),var.files)]
 if (is.null(res)) {

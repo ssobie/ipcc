@@ -1,0 +1,25 @@
+#!/bin/bash
+#PBS -l walltime=12:00:00
+#PBS -l nodes=1:ppn=1
+#PBS -l pmem=5000Mb
+#PBS -d /storage/home/ssobie/code/repos/ipcc/
+#PBS -o ./out_dir/CNRM-ESM2-1-tasmax-r1i1p1f2-rcp-2071-2100.out
+#PBS -e ./out_dir/CNRM-ESM2-1-tasmax-r1i1p1f2-rcp-2071-2100.err
+#PBS -N cnr.r1i.
+
+cd /storage/home/ssobie/code/repos/ipcc/
+echo "Current working directory is `pwd`"
+
+gcm="GCM"
+gcm="CNRM-ESM2-1"
+run="r1i1p1f2"
+scenario="ssp126"
+rp="20"
+interval="2071-2100"
+deg=""
+varname="tasmax"
+gcmfile="tasmax_annual_maximum_CNRM-ESM2-1_historical+ssp126_r1i1p1f2_gr_1850-2100.nc"
+gcmdir="/storage/data/climate/CMIP6/Derived/CNRM-ESM2-1_ssp126_r1i1p1f2/annual_extremes/"
+writedir="/storage/data/climate/CMIP6/Derived/CNRM-ESM2-1_ssp126_r1i1p1f2/return_periods/"
+R CMD BATCH --no-save --no-restore "--args tmpdir='$TMPDIR' varname='$varname' gcm='$gcm' run='$run' scenario='$scenario' rp='$rp' interval='$interval' deg='$deg' gcmfile='$gcmfile' gcmdir='$gcmdir' writedir='$writedir'" cmip6.return.period.variables.calculation.r "./out_files/${gcm}.${varname}.${scenario}.${run}.${interval}.RP.${rp}.out"
+

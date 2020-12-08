@@ -60,6 +60,8 @@ if (!file.exists(tmp.dir)) {
 degree.names <- c('cdd','fdd','gdd','hdd')
 
 base.dir <- '/storage/data/climate/CMIP6/'
+###base.dir <-  '/storage/data/climate/CMIP5/daily/'
+
 if (is.null(res)) {
    write.dir <- paste0(base.dir,'/Derived/',gcm,'_',scenario,'_',run,'/')
 } else {
@@ -70,7 +72,8 @@ if (!file.exists(write.dir))
 
 ##Transfer template files for derived file creation
 
-gcm.dir <- paste0(base.dir,'assembled/',gcm,'/')
+gcm.dir <- paste0(base.dir,'assembled/',gcm,'/') ##CMIP6
+###gcm.dir <- paste0(base.dir,gcm,'/') ##CMIP5
 rcp.files <- list.files(path=gcm.dir,pattern=paste0('historical\\+',scenario))
 
 if (is.null(res)) {
@@ -80,8 +83,8 @@ if (is.null(res)) {
    run.files <- res.files[grep(run,res.files)]
 }
 
-tasmax.file <- run.files[grep('tasmax',run.files)]
-tasmin.file <- run.files[grep('tasmin',run.files)]
+tasmax.file <- run.files[grep(paste0('tasmax_day_',gcm),run.files)]
+tasmin.file <- run.files[grep(paste0('tasmin_day_',gcm),run.files)]
 
 if (length(tasmax.file)!=1 | length(tasmin.file) !=1) {
    print(tasmax.file)
